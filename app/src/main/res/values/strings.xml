@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">OGmail</string>
+    <string name="underbar">Bar that lies under the app</string>
+    <string name="update">Update</string>
+    <string name="new_email">New Email</string>
+    <string name="sent_list">Sent</string>
+    <string name="friends">Friends</string>
+
+</resources>
