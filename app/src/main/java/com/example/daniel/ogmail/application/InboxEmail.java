@@ -1,4 +1,4 @@
-package com.example.daniel.ogmail;
+package com.example.daniel.ogmail.application;
 
 import com.example.daniel.ogmail.OGM.Email;
 

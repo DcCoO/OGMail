@@ -3,7 +3,6 @@ package com.example.daniel.ogmail.application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.example.daniel.ogmail.InboxEmail;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 

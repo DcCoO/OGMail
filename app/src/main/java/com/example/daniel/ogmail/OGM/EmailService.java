@@ -1,5 +1,6 @@
-package com.example.daniel.ogmail;
+package com.example.daniel.ogmail.OGM;
 
+import com.example.daniel.ogmail.Callback;
 import com.example.daniel.ogmail.OGM.Email;
 
 public interface EmailService {

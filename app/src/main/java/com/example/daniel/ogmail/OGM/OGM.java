@@ -1,13 +1,6 @@
 package com.example.daniel.ogmail.OGM;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-
 import com.example.daniel.ogmail.Callback;
-import com.example.daniel.ogmail.EmailService;
-import com.example.daniel.ogmail.application.MemoryManager;
-import com.google.gson.Gson;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -177,21 +170,21 @@ public class OGM implements EmailService {
 
             @Override
             public void run() {
-                try  {
-                    System.out.println("startTracking: TRACKEANDO EMAIL " + userEmail);
-                    tracking = true;
-                    while(tracking){
-                        if(hasNewEmails(userEmail)){
-                            callback.execute(Response.EMAIL_RECEIVED);
-                            System.out.println("startTracking: NEW EMAILS FOUND");
-                            tracking = false;
-                        }
+            try  {
+                System.out.println("startTracking: TRACKEANDO EMAIL " + userEmail);
+                tracking = true;
+                while(tracking){
+                    if(hasNewEmails(userEmail)){
+                        callback.execute(Response.EMAIL_RECEIVED);
+                        System.out.println("startTracking: NEW EMAILS FOUND");
+                        tracking = false;
                     }
-                    System.out.println("startTracking: PARANDO DE TRACKEAR " + userEmail);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+                System.out.println("startTracking: PARANDO DE TRACKEAR " + userEmail);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             }
         });
 
@@ -202,6 +195,8 @@ public class OGM implements EmailService {
     public void stopTracking(Callback callback){
         tracking = false;
     }
+
+    public boolean isTracking(){return tracking;}
 
     @Override
     public boolean searchUser(String userEmail, Callback callback) {

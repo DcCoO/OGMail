@@ -1,4 +1,4 @@
-package com.example.daniel.ogmail;
+package com.example.daniel.ogmail.application;
 
 import java.util.Calendar;
 import java.util.Date;

@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.daniel.ogmail.Callback;
+import com.example.daniel.ogmail.OGM.CRH;
 import com.example.daniel.ogmail.OGM.CryptoManager;
 import com.example.daniel.ogmail.OGM.Email;
 import com.example.daniel.ogmail.OGM.OGM;
@@ -32,6 +33,8 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        setTitle("Register");
+
         final EditText text = findViewById(R.id.email_field);
 
         Button button = findViewById(R.id.register);
@@ -40,7 +43,7 @@ public class RegisterActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-                OGM.getInstance().register(text.getText().toString(), new Callback() {
+                CRH.register(text.getText().toString(), new Callback() {
                     @Override
                     public void execute(Response response) {
 
@@ -59,24 +62,6 @@ public class RegisterActivity extends AppCompatActivity {
                 });
             }
         });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        if(item.getItemId() == R.id.new_email){
-            Intent intent = new Intent(this, EmailActivity.class);
-            startActivity(intent);
-        }
-        else if(item.getItemId() == R.id.update){
-
-        }
-        return true;
     }
 
     private boolean isNetworkAvailable() {

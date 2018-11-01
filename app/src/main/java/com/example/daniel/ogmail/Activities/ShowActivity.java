@@ -18,9 +18,15 @@ public class ShowActivity extends AppCompatActivity {
 
         Email email = (Email) getIntent().getSerializableExtra("email");
 
+        setTitle(email.from + "\'s Email");
+
         EditText from = findViewById(R.id.showFrom);
         EditText subject = findViewById(R.id.showSubject);
         EditText body = findViewById(R.id.showBody);
+
+        from.setKeyListener(null);
+        subject.setKeyListener(null);
+        body.setKeyListener(null);
 
         from.setText(email.from);
         subject.setText(email.subject);
