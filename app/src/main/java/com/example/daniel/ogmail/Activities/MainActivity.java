@@ -17,6 +17,7 @@ import com.example.daniel.ogmail.Callback;
 import com.example.daniel.ogmail.OGM.Email;
 import com.example.daniel.ogmail.EmailAdapter;
 import com.example.daniel.ogmail.InboxEmail;
+import com.example.daniel.ogmail.OGM.EmailComparator;
 import com.example.daniel.ogmail.OGM.OGM;
 import com.example.daniel.ogmail.OGM.Response;
 import com.example.daniel.ogmail.R;
@@ -28,6 +29,7 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 
 import android.view.Menu;
@@ -53,9 +55,13 @@ public class MainActivity extends AppCompatActivity {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Email email = (Email) inbox.get(position);
+                InboxEmail iemail = inbox.get(position);
+                iemail.wasRead = true;
+                inbox.set(position, iemail);
+                //adapter.notifyDataSetChanged();
+                MemoryManager.getInstance().UpdateInboxEmails(context, inbox);
                 Intent intent = new Intent(context, ShowActivity.class);
-                intent.putExtra("email", email);
+                intent.putExtra("email", iemail);
                 startActivity(intent);
 
             }
@@ -63,14 +69,8 @@ public class MainActivity extends AppCompatActivity {
 
         LoadRegisterActivity();
 
-        //Email e = new Email(new Date(), "daniel", new String[0], "teste", "this is a test");
-
-        //ArrayList<InboxEmail> inbox = new ArrayList<>();
-        //inbox.add(new InboxEmail(e));
-        //ArrayAdapter adapter = new EmailAdapter(this, inbox);
-        //list.setAdapter(adapter);
-
         inbox = MemoryManager.getInstance().loadInboxEmails(this);
+        Collections.sort(inbox, new EmailComparator());
         adapter = new EmailAdapter(this, inbox);
         list.setAdapter(adapter);
 
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println(emails[i]);
                     InboxEmail iemail = new InboxEmail(emails[i]);
                     inbox.add(new InboxEmail(iemail));
-                    MemoryManager.getInstance().save(context, iemail, MemoryManager.SaveType.INBOX);
+                    MemoryManager.getInstance().SaveInboxEmail(context, iemail);
                 }
 
                 try {

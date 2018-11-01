@@ -76,14 +76,6 @@ public class RegisterActivity extends AppCompatActivity {
         else if(item.getItemId() == R.id.update){
 
         }
-        else if(item.getItemId() == R.id.sent_list){
-            Intent intent = new Intent(this, SentActivity.class);
-            startActivity(intent);
-        }
-        else if(item.getItemId() == R.id.friends){
-            Intent intent = new Intent(this, FriendsActivity.class);
-            startActivity(intent);
-        }
         return true;
     }
 

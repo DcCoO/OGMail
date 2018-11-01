@@ -1,6 +1,7 @@
 package com.example.daniel.ogmail.OGM;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Date;
 
 public class Email implements Serializable {
@@ -22,6 +23,5 @@ public class Email implements Serializable {
     public String toString(){
         return "From: " + from + "\nSubject: " + subject + "\nBody: " + body;
     }
-
-
 }
+
