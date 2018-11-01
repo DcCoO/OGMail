@@ -27,7 +27,7 @@ public class ClientRequestHandler implements EmailService {
 
     @Override
     public Email[] getEmails(String myEmails, Callback callback) {
-        return new Email[0];
+        return new Email[3];
     }
 
     @Override

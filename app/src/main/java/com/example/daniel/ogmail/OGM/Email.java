@@ -18,5 +18,9 @@ public class Email {
         this.body = body;
     }
 
+    public String toString(){
+        return "From: " + from + "\nSubject: " + subject + "\nBody: " + body;
+    }
+
 
 }

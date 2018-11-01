@@ -1,6 +1,10 @@
 package com.example.daniel.ogmail.Activities;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -12,7 +16,10 @@ import com.example.daniel.ogmail.OGM.Email;
 import com.example.daniel.ogmail.EmailAdapter;
 import com.example.daniel.ogmail.InboxEmail;
 import com.example.daniel.ogmail.OGM.OGM;
+import com.example.daniel.ogmail.OGM.Response;
 import com.example.daniel.ogmail.R;
+import com.example.daniel.ogmail.application.MemoryManager;
+import com.example.daniel.ogmail.application.ToastManager;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -27,22 +34,31 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static ArrayList<InboxEmail> inbox;
+    public static volatile ArrayAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //MemoryManager.getInstance().clearMemory(this);
+
         setTitle("Inbox");
 
         ListView list = (ListView) findViewById(R.id.listEmail);
+        //list.
 
         LoadRegisterActivity();
 
-        Email e = new Email(new Date(), "daniel", new String[0], "teste", "this is a test");
+        //Email e = new Email(new Date(), "daniel", new String[0], "teste", "this is a test");
 
-        ArrayList<InboxEmail> inbox = new ArrayList<>();
-        inbox.add(new InboxEmail(e));
-        ArrayAdapter adapter = new EmailAdapter(this, inbox);
+        //ArrayList<InboxEmail> inbox = new ArrayList<>();
+        //inbox.add(new InboxEmail(e));
+        //ArrayAdapter adapter = new EmailAdapter(this, inbox);
+        //list.setAdapter(adapter);
+
+        inbox = MemoryManager.getInstance().loadInboxEmails(this);
+        adapter = new EmailAdapter(this, inbox);
         list.setAdapter(adapter);
 
 
@@ -60,10 +76,11 @@ public class MainActivity extends AppCompatActivity {
 
         thread.start();*/
 
-
+        //updateList();
     }
 
     void LoadRegisterActivity(){
+
         Boolean isFirstRun = getSharedPreferences(
                 "shared preferences",
                 MODE_PRIVATE
@@ -74,8 +91,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, RegisterActivity.class));
 
 
-            //getSharedPreferences("shared preferences", MODE_PRIVATE).edit()
-            //        .putBoolean("isFirstRun", false).commit();
+            getSharedPreferences("shared preferences", MODE_PRIVATE).edit().putBoolean("isFirstRun", false).commit();
         }
     }
 
@@ -92,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
         else if(item.getItemId() == R.id.update){
-
+            update();
         }
         else if(item.getItemId() == R.id.sent_list){
             Intent intent = new Intent(this, SentActivity.class);
@@ -102,26 +118,66 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, FriendsActivity.class);
             startActivity(intent);
         }
+        else if(item.getItemId() == R.id.clear){
+            MemoryManager.getInstance().clearMemory(this);
+            adapter.clear();
+            adapter.notifyDataSetChanged();
+        }
         return true;
     }
 
-    public void writeEmail(){
-
+    public void updateList(){
+        adapter.notifyDataSetChanged();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        updateList();
     }
-    public void friends(){
 
-    }
     public void update(){
+        final String myEmail = MemoryManager.getInstance().getMyEmail(this);
+        final Context context = this;
+        OGM.getInstance().startTracking(myEmail, new Callback() {
+            @Override
+            public void execute(Response response) {
+                Email[] emails = OGM.getInstance().getEmails(myEmail, new Callback() {
 
+                    @Override
+                    public void execute(Response response) {
+                        ToastManager.show("Emails received!", 0, (Activity) context);
+
+                    }
+                });
+                for(int i = 0; i < emails.length; i++){
+                    System.out.println(emails[i]);
+                    InboxEmail iemail = new InboxEmail(emails[i]);
+                    inbox.add(new InboxEmail(iemail));
+                    MemoryManager.getInstance().save(context, iemail, MemoryManager.SaveType.INBOX);
+                }
+
+                try {
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+
+                    OGM.getInstance().clearInbox(myEmail, new Callback() {
+                        @Override
+                        public void execute(Response response) {
+                            update();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        });
     }
-
-    //send email
-    //retrieve emails
-    //look for emails
-    //look for friends
-    //register me
-
-
-
-
 }

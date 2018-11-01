@@ -16,9 +16,9 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class MemoryManager {
 
-    private MemoryManager instance = null;
+    private static MemoryManager instance = null;
 
-    public MemoryManager getInstance(){
+    public static MemoryManager getInstance(){
         if(instance == null) instance = new MemoryManager();
         return instance;
     }
@@ -26,15 +26,26 @@ public class MemoryManager {
     private MemoryManager(){}
 
     public enum SaveType{
-        SENT, INBOX, FRIEND
+        SENT, INBOX
     }
 
     public void save(Context context, Object element, SaveType type){
         switch (type){
             case INBOX: SaveInboxEmail(context, (InboxEmail) element); break;
             case SENT: SaveSentEmail(context, (SentEmail) element); break;
-            case FRIEND: SaveFriend(context, (String) element); break;
         }
+    }
+
+    public void SaveMyEmail(Context context, String myEmail){
+        SharedPreferences sp = context.getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("my_email", myEmail);
+        editor.apply();
+    }
+
+    public String getMyEmail(Context context){
+        SharedPreferences sp = context.getSharedPreferences("shared preferences", MODE_PRIVATE);
+        return sp.getString("my_email", null);
     }
 
     private void SaveInboxEmail(Context context, InboxEmail email){
@@ -59,18 +70,7 @@ public class MemoryManager {
         editor.apply();
     }
 
-    private void SaveFriend(Context context, String friend){
-        ArrayList<String> friends = loadFriends(context);
-        SharedPreferences sp = context.getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        Gson gson = new Gson();
-        friends.add(friend);
-        String json = gson.toJson(friends);
-        editor.putString("friends", json);
-        editor.apply();
-    }
-
-    private ArrayList<InboxEmail> loadInboxEmails(Context context){
+    public ArrayList<InboxEmail> loadInboxEmails(Context context){
         SharedPreferences sp = context.getSharedPreferences("shared preferences", MODE_PRIVATE);
         Gson gson = new Gson();
         String json = sp.getString("inbox", null);
@@ -80,7 +80,7 @@ public class MemoryManager {
         return emails;
     }
 
-    private ArrayList<SentEmail> loadSentEmails(Context context){
+    public ArrayList<SentEmail> loadSentEmails(Context context){
         SharedPreferences sp = context.getSharedPreferences("shared preferences", MODE_PRIVATE);
         Gson gson = new Gson();
         String json = sp.getString("sent", null);
@@ -90,14 +90,14 @@ public class MemoryManager {
         return emails;
     }
 
-    private ArrayList<String> loadFriends(Context context){
+    public void clearMemory(Context context){
+        ArrayList<InboxEmail> emails = new ArrayList<>();
         SharedPreferences sp = context.getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
         Gson gson = new Gson();
-        String json = sp.getString("friends", null);
-        Type type = new TypeToken<ArrayList<String>>(){}.getType();
-        ArrayList<String> friends = gson.fromJson(json, type);
-        if(friends == null) friends = new ArrayList<String>();
-        return friends;
+        String json = gson.toJson(emails);
+        editor.putString("inbox", json);
+        editor.apply();
     }
 
 }

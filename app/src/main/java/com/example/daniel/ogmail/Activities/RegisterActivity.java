@@ -2,10 +2,13 @@ package com.example.daniel.ogmail.Activities;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,10 +16,14 @@ import android.widget.Toast;
 
 import com.example.daniel.ogmail.Callback;
 import com.example.daniel.ogmail.OGM.CryptoManager;
+import com.example.daniel.ogmail.OGM.Email;
 import com.example.daniel.ogmail.OGM.OGM;
 import com.example.daniel.ogmail.OGM.Response;
 import com.example.daniel.ogmail.R;
+import com.example.daniel.ogmail.application.MemoryManager;
 import com.example.daniel.ogmail.application.ToastManager;
+
+import java.util.Date;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -29,19 +36,6 @@ public class RegisterActivity extends AppCompatActivity {
 
         Button button = findViewById(R.id.register);
         final Context context = this;
-
-        String m = "aAZz0tirei o pau no gato";
-        String c = CryptoManager.encrypt(m, "daniel", "tex");
-        System.out.println(c);
-        System.out.println(CryptoManager.decrypt(c, "daniel", "tex"));
-
-        //OGM.getInstance().getEmails("carajo", null);
-        //OGM.getInstance().startTracking("carajo", new Callback() {
-        //    @Override
-        //    public void execute(Response response) {
-        //        System.out.println("ACHOU EMAILS");
-        //    }
-        //});
 
         button.setOnClickListener(new View.OnClickListener() {
 
@@ -57,13 +51,40 @@ public class RegisterActivity extends AppCompatActivity {
                             ToastManager.show("Email already registered.", 1, (Activity) context);
                         }
                         else if(response == Response.REGISTER_SUCCESS) {
+                            MemoryManager.getInstance().SaveMyEmail(context, text.getText().toString());
                             ToastManager.show("Email successfully registered.", 1, (Activity) context);
+                            startActivity(new Intent(context, MainActivity.class));
                         }
-
                     }
                 });
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        if(item.getItemId() == R.id.new_email){
+            Intent intent = new Intent(this, EmailActivity.class);
+            startActivity(intent);
+        }
+        else if(item.getItemId() == R.id.update){
+
+        }
+        else if(item.getItemId() == R.id.sent_list){
+            Intent intent = new Intent(this, SentActivity.class);
+            startActivity(intent);
+        }
+        else if(item.getItemId() == R.id.friends){
+            Intent intent = new Intent(this, FriendsActivity.class);
+            startActivity(intent);
+        }
+        return true;
     }
 
     private boolean isNetworkAvailable() {

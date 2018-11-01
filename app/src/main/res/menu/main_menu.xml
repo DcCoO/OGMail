@@ -18,4 +18,8 @@
         android:title="@string/friends"
         app:showAsAction="never"/>
 
+    <item android:id="@+id/clear"
+        android:title="@string/clear"
+        app:showAsAction="never"/>
+
 </menu>

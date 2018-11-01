@@ -21,7 +21,8 @@
         </activity>
         <activity android:name=".Activities.FriendsActivity" />
         <activity android:name=".Activities.SentActivity" />
-        <activity android:name=".Activities.EmailActivity" />
+        <activity android:name=".Activities.EmailActivity"
+            android:parentActivityName=".Activities.MainActivity"/>
         <activity android:name=".Activities.RegisterActivity"></activity>
     </application>
 

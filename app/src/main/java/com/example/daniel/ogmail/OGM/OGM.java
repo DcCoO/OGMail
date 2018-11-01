@@ -6,12 +6,15 @@ import android.net.NetworkInfo;
 
 import com.example.daniel.ogmail.Callback;
 import com.example.daniel.ogmail.EmailService;
+import com.example.daniel.ogmail.application.MemoryManager;
+import com.google.gson.Gson;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -68,16 +71,32 @@ public class OGM implements EmailService {
 
     @Override
     public void sendEmail(final Email email, final Callback callback) {
+
+        for(int i = 0; i < email.to.length; i++){
+            System.out.println("dest: " + email.to[i]);
+        }
+
         Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
+                boolean hasOneUser = false;
+                boolean hasntOneUser = false;
                 try  {
                     for(int i = 0; i < email.to.length; i++){
+                        boolean userExists = searchUser(email.to[i], null);
+                        hasOneUser = hasOneUser || userExists;
+                        hasntOneUser = hasntOneUser || !userExists;
+
+                        if(!userExists) continue;
+
                         String cipher = CryptoManager.encryptEmail(email, i);
                         writeEmail(email.from, email.to[i], cipher);
                     }
-                    callback.execute(Response.EMAIL_SENT);
+                    if(!hasntOneUser) callback.execute(Response.EMAIL_SENT);
+                    else if(!hasOneUser) callback.execute(Response.EMAIL_FAILED);
+                    else callback.execute(Response.EMAIL_PARTIALLY_SENT);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -89,38 +108,51 @@ public class OGM implements EmailService {
 
     @Override
     public Email[] getEmails(final String myEmail, final Callback callback) {
+        //System.out.println("getEmails: Rodando");
+        final Email[] emails = new Email[100];
 
         Thread thread = new Thread(new Runnable() {
-
             @Override
             public void run() {
                 try  {
-                    String emails = getEmails(myEmail);
-                    int emailNumber = emails.length() - emails.replace(":", "").length();
-                    int mark = 0, markEnd = 0;
+                    String emailsJson = getEmails(myEmail);
+                    System.out.println("getEmails: " + emailsJson);
+                    int emailNumber = emailsJson.length() - emailsJson.replace(":", "").length() - 1;
+                    int idBegin = 0, bracketBegin = 0;
+                    int fieldBegin = 0, fieldEnd = 0;
 
-                    String subject, body;
+                    String sender, body, cipher;
 
                     for(int i = 0; i < emailNumber; i++){
-                        mark = markPosition(emails, mark);
-                        markEnd = markPosition(emails, mark + 1);
+                        idBegin = emailsJson.indexOf('-', idBegin);
+                        if(idBegin == -1) break;
+                        bracketBegin = getIndex(emailsJson, '{', idBegin + 1);
 
-                        subject = emails.substring(mark, markEnd);
+                        //finding sender
+                        fieldBegin = getIndex(emailsJson, '\"', bracketBegin + 1);
+                        fieldEnd = getIndex(emailsJson, '\"', fieldBegin + 1);
 
-                        mark = markEnd + 1;
+                        sender = emailsJson.substring(fieldBegin + 1, fieldEnd);
 
-                        mark = markPosition(emails, mark);
-                        markEnd = markPosition(emails, mark + 1);
+                        //finding body
+                        fieldBegin = getIndex(emailsJson, '\"', fieldEnd + 1);
+                        fieldEnd = getIndex(emailsJson, '\"', fieldBegin + 1);
 
-                        body = emails.substring(mark, markEnd);
+                        cipher = emailsJson.substring(fieldBegin + 1, fieldEnd);
 
-                        mark = markEnd + 1;
-                        //Email email = CryptoManager.decryptCipher()
+                        Email email = CryptoManager.decryptCipher(cipher, sender, myEmail);
+                        emails[i] = email;
 
+                        //System.out.println("getEmails: " + email);
+
+                        idBegin++;
                     }
+
                     callback.execute(Response.EMAIL_RECEIVED);
 
+
                 } catch (Exception e) {
+                    System.out.println(e.getLocalizedMessage());
                     e.printStackTrace();
                 }
             }
@@ -128,7 +160,15 @@ public class OGM implements EmailService {
 
         thread.start();
 
-        return new Email[0];
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        for(int i = 0; i < 100; i++)
+            if(emails[i] == null) return Arrays.copyOfRange(emails, 0, i);
+        return null;
     }
 
     @Override
@@ -138,15 +178,16 @@ public class OGM implements EmailService {
             @Override
             public void run() {
                 try  {
-                    System.out.println("ENTROU NO LOOP: " + userEmail);
+                    System.out.println("startTracking: TRACKEANDO EMAIL " + userEmail);
                     tracking = true;
                     while(tracking){
                         if(hasNewEmails(userEmail)){
                             callback.execute(Response.EMAIL_RECEIVED);
-                            //clearInbox(userEmail);
+                            System.out.println("startTracking: NEW EMAILS FOUND");
+                            tracking = false;
                         }
                     }
-                    System.out.println("SAIU DO LOOP");
+                    System.out.println("startTracking: PARANDO DE TRACKEAR " + userEmail);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -164,17 +205,17 @@ public class OGM implements EmailService {
 
     @Override
     public boolean searchUser(String userEmail, Callback callback) {
-        return false;
+        return !getUser(userEmail).equals("null");
     }
 
-    private int markPosition(String s, int begin){
+    private int getIndex(String s, char c, int begin){
         for(int i = begin; i < s.length(); i++)
-            if(s.charAt(i) == '\"') return i;
+            if(s.charAt(i) == c) return i;
         return -1;
     }
 
 
-    private static String getUser(String userEmail) {
+    private String getUser(String userEmail) {
         try {
             StringBuilder result = new StringBuilder();
             URL url = new URL("https://o-e4bc8.firebaseio.com/users/" + userEmail + ".json");
@@ -248,7 +289,9 @@ public class OGM implements EmailService {
         return getEmailCount(userEmail) > 1;
     }
 
-    private void clearInbox(String userEmail) throws Exception {
+    public void clearInbox(String userEmail, Callback callback) throws Exception {
+        //if(0 == 0)return;
+        System.out.println("RODANDO clearInbox");
         String url = "https://o-e4bc8.firebaseio.com/users/" + userEmail + "/inbox.json";
         URL obj = new URL(url);
         HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
@@ -268,9 +311,9 @@ public class OGM implements EmailService {
         wr.close();
 
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'POST' request to URL : " + url);
-        System.out.println("Post parameters : " + urlParameters);
-        System.out.println("Response Code : " + responseCode);
+        //System.out.println("\nSending 'POST' request to URL : " + url);
+        //System.out.println("Post parameters : " + urlParameters);
+        //System.out.println("Response Code : " + responseCode);
 
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
@@ -282,7 +325,8 @@ public class OGM implements EmailService {
         in.close();
 
         //print result
-        System.out.println(response.toString());
+        //System.out.println(response.toString());
+        //callback.execute(null);
     }
 
     private String getEmails(String userEmail) throws Exception {
@@ -300,6 +344,7 @@ public class OGM implements EmailService {
     }
 
     public void writeEmail(String senderEmail, String destinyEmail, String ciphertext) throws Exception {
+        System.out.println(senderEmail + ", " + destinyEmail + ", " + ciphertext);
         String url = "https://o-e4bc8.firebaseio.com/users/" + destinyEmail + "/inbox.json";
         URL obj = new URL(url);
         HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
@@ -319,9 +364,6 @@ public class OGM implements EmailService {
         wr.close();
 
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'POST' request to URL : " + url);
-        System.out.println("Post parameters : " + urlParameters);
-        System.out.println("Response Code : " + responseCode);
 
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
