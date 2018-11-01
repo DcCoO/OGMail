@@ -10,14 +10,6 @@
         android:title="@string/update"
         app:showAsAction="never"/>
 
-    <item android:id="@+id/sent_list"
-        android:title="@string/sent_list"
-        app:showAsAction="never"/>
-
-    <item android:id="@+id/friends"
-        android:title="@string/friends"
-        app:showAsAction="never"/>
-
     <item android:id="@+id/clear"
         android:title="@string/clear"
         app:showAsAction="never"/>

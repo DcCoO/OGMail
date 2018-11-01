@@ -1,8 +1,9 @@
 package com.example.daniel.ogmail.OGM;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Email {
+public class Email implements Serializable {
 
     public Date date;
     public String[] to;

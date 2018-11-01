@@ -8,6 +8,8 @@ import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -45,8 +47,19 @@ public class MainActivity extends AppCompatActivity {
 
         setTitle("Inbox");
 
+        final Context context = this;
+
         ListView list = (ListView) findViewById(R.id.listEmail);
-        //list.
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Email email = (Email) inbox.get(position);
+                Intent intent = new Intent(context, ShowActivity.class);
+                intent.putExtra("email", email);
+                startActivity(intent);
+
+            }
+        });
 
         LoadRegisterActivity();
 
@@ -61,22 +74,7 @@ public class MainActivity extends AppCompatActivity {
         adapter = new EmailAdapter(this, inbox);
         list.setAdapter(adapter);
 
-
-        /*Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try  {
-                    postHTML();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        thread.start();*/
-
-        //updateList();
+        update();
     }
 
     void LoadRegisterActivity(){
@@ -110,14 +108,6 @@ public class MainActivity extends AppCompatActivity {
         else if(item.getItemId() == R.id.update){
             update();
         }
-        else if(item.getItemId() == R.id.sent_list){
-            Intent intent = new Intent(this, SentActivity.class);
-            startActivity(intent);
-        }
-        else if(item.getItemId() == R.id.friends){
-            Intent intent = new Intent(this, FriendsActivity.class);
-            startActivity(intent);
-        }
         else if(item.getItemId() == R.id.clear){
             MemoryManager.getInstance().clearMemory(this);
             adapter.clear();
@@ -126,15 +116,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void updateList(){
-        adapter.notifyDataSetChanged();
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        updateList();
-    }
+
 
     public void update(){
         final String myEmail = MemoryManager.getInstance().getMyEmail(this);
@@ -173,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } catch (Exception e) {
+                    System.out.println(e.getLocalizedMessage());
                     e.printStackTrace();
                 }
 
