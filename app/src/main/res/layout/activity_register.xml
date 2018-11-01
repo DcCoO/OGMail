@@ -25,7 +25,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="Insert your email"
+            android:text="Insert your username"
             android:textColor="@android:color/white"
             android:textSize="26sp" />
 
@@ -34,11 +34,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ1234567890"
             android:ems="10"
             android:gravity="center"
-            android:hint="enter email here"
+            android:hint="enter username here"
             android:inputType="textPersonName"
-            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ1234567890"
             android:textColor="@android:color/white"
             android:textColorHint="@color/hint_color"
             android:textSize="20sp" />
