@@ -51,13 +51,18 @@ public class RegisterActivity extends AppCompatActivity {
 
                     @Override
                     public void run() {
-                        String response = EmailProxy.getInstance().register(text.getText().toString(), null);
-                        if (response.equals("fail")) {
-                            ToastManager.show("Register failed.", 1, (Activity) context);
-                        } else {
-                            MemoryManager.getInstance().SaveMyEmail(context, text.getText().toString());
-                            ToastManager.show("Email successfully registered.", 1, (Activity) context);
-                            startActivity(new Intent(context, MainActivity.class));
+                        try {
+                            String response = EmailProxy.getInstance().register(text.getText().toString(), null);
+                            if (response.equals("fail")) {
+                                ToastManager.show("Register failed.", 1, (Activity) context);
+                            } else {
+                                MemoryManager.getInstance().SaveMyEmail(context, text.getText().toString());
+                                ToastManager.show("Email successfully registered.", 1, (Activity) context);
+                                startActivity(new Intent(context, MainActivity.class));
+                            }
+                        }
+                        catch(Exception e){
+                            ToastManager.show("Connection failed.", 0, (Activity) context);
                         }
                     }
                 });

@@ -66,6 +66,7 @@ public class EmailActivity extends AppCompatActivity {
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
+                            ToastManager.show("Connection failed.", 0, (Activity) context);
                         }
                     }
                 });

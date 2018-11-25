@@ -131,27 +131,44 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                String response = EmailProxy.getInstance().getEmails(myEmail, null);
-                //System.out.println(response);
+                try {
+                    String response = EmailProxy.getInstance().getEmails(myEmail, null);
+                    //System.out.println(response);
 
-                String pattern = "[^\"$]+\\$[^\"$]+\\$[^\"$]+";
+                    String pattern = "[^\"$]+\\$[^\"$]+\\$[^\"$]+";
 
-                Pattern r = Pattern.compile(pattern);
-                Matcher m = r.matcher(response);
-                while (m.find()) {
-                    String match = m.group(0);
-                    InboxEmail email = new InboxEmail(new Email(match));
-                    inbox.add(new InboxEmail(email));
-                    MemoryManager.getInstance().SaveInboxEmail(context, email);
-                }
+                    Pattern r = Pattern.compile(pattern);
+                    Matcher m = r.matcher(response);
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Collections.sort(inbox, new EmailComparator());
-                        adapter.notifyDataSetChanged();
+                    boolean foundEmails = false;
+
+                    while (m.find()) {
+                        foundEmails = true;
+                        String match = m.group(0);
+                        InboxEmail email = new InboxEmail(new Email(match));
+                        inbox.add(new InboxEmail(email));
+                        MemoryManager.getInstance().SaveInboxEmail(context, email);
                     }
-                });
+
+                    if(!foundEmails) {
+                        ToastManager.show("No new emails.", 0, (Activity) context);
+                        return;
+                    }
+
+                    ToastManager.show("New emails received.", 0, (Activity) context);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Collections.sort(inbox, new EmailComparator());
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                    ToastManager.show("Connection failed.", 0, (Activity) context);
+                }
 
             }
         });
