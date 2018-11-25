@@ -1,53 +1,45 @@
 package com.example.daniel.ogmail.OGM;
 
-import com.example.daniel.ogmail.Callback;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 
 public class CRH {
 
-    private CRH(){}
+    Socket client;
 
-
-    public static void register(String myEmail, Callback callback) {
-        OGM.getInstance().register(myEmail, callback);
-    }
-
-
-    public static void sendEmail(Email email, Callback callback) {
-        OGM.getInstance().sendEmail(email, callback);
-    }
-
-
-    public static Email[] getEmails(String myEmails, Callback callback) {
-        return OGM.getInstance().getEmails(myEmails, callback);
-    }
-
-
-    public static void startTracking(String userEmail, Callback callback) {
-        OGM.getInstance().startTracking(userEmail, callback);
-    }
-
-
-    public static void stopTracking(Callback callback) {
-        OGM.getInstance().stopTracking(callback);
-    }
-
-
-    public static boolean searchUser(String userEmail, Callback callback) {
-        return OGM.getInstance().searchUser(userEmail, callback);
-    }
-
-    public static boolean isTracking(){
-        return OGM.getInstance().isTracking();
-    }
-
-    public static void clearInbox(String userEmail, Callback callback){
+    public CRH(String ip, int port) {
         try {
-            OGM.getInstance().clearInbox(userEmail, callback);
-        } catch (Exception e) {
+            System.out.println("[<o>] tentando criar CRH e socket");
+            client = new Socket("192.168.0.19", 5000);
+            System.out.println("[<o>] criou o socket no CRH");
+        }
+        catch (Exception e){
             e.printStackTrace();
         }
     }
 
+    public void send(byte[] data) throws IOException {
+        System.out.println("[<o>] entrou CRH send");
+        DataOutputStream dOut = new DataOutputStream(client.getOutputStream());
+
+        dOut.writeInt(data.length); // write length of the message
+        dOut.write(data);
+    }
+
+    public byte[] receive() throws IOException {
+        DataInputStream dIn = new DataInputStream(client.getInputStream());
+
+        int length = dIn.readInt();                    // read length of incoming message
+        if(length>0) {
+            byte[] message = new byte[length];
+            dIn.readFully(message, 0, message.length); // read the message
+            return message;
+        }
+        return new byte[0];
+    }
 
 
 }

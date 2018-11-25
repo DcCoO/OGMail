@@ -1,13 +1,16 @@
 package com.example.daniel.ogmail.Activities;
 
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.view.MenuItem;
 import android.widget.EditText;
 
 import com.example.daniel.ogmail.OGM.Email;
 import com.example.daniel.ogmail.R;
+import com.example.daniel.ogmail.application.Internet;
 
 public class ShowActivity extends AppCompatActivity {
 
@@ -19,6 +22,7 @@ public class ShowActivity extends AppCompatActivity {
         Email email = (Email) getIntent().getSerializableExtra("email");
 
         setTitle(email.from + "\'s Email");
+        SetInternet();
 
         EditText from = findViewById(R.id.showFrom);
         EditText subject = findViewById(R.id.showSubject);
@@ -40,5 +44,10 @@ public class ShowActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    public void SetInternet(){
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        Internet.ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
     }
 }

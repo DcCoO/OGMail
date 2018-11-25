@@ -3,8 +3,10 @@ package com.example.daniel.ogmail.Activities;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -14,16 +16,20 @@ import android.widget.ListView;
 import com.example.daniel.ogmail.Callback;
 import com.example.daniel.ogmail.OGM.CRH;
 import com.example.daniel.ogmail.OGM.Email;
+import com.example.daniel.ogmail.OGM.EmailProxy;
 import com.example.daniel.ogmail.application.EmailAdapter;
 import com.example.daniel.ogmail.application.InboxEmail;
 import com.example.daniel.ogmail.OGM.EmailComparator;
 import com.example.daniel.ogmail.OGM.Response;
 import com.example.daniel.ogmail.R;
+import com.example.daniel.ogmail.application.Internet;
 import com.example.daniel.ogmail.application.MemoryManager;
 import com.example.daniel.ogmail.application.ToastManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.view.Menu;
 
@@ -32,12 +38,15 @@ public class MainActivity extends AppCompatActivity {
 
     public static ArrayList<InboxEmail> inbox;
     public static volatile ArrayAdapter adapter;
+    public static String myEmail;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        setTitle(MemoryManager.getInstance().getMyEmail(this) + "\'s Inbox");
+        SetInternet();
+        myEmail = MemoryManager.getInstance().getMyEmail(this);
+        setTitle(myEmail + "\'s Inbox");
 
         final Context context = this;
 
@@ -67,15 +76,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if(!CRH.isTracking()){
-            update();
-        }
     }
 
     @Override
     public void onPause(){
         super.onPause();
-        CRH.stopTracking(null);
     }
 
     void LoadRegisterActivity(){
@@ -84,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
                 "shared preferences",
                 MODE_PRIVATE
         ).getBoolean("isFirstRun", true);
-
+        //isFirstRun = true;
         if (isFirstRun) {
             //show sign up activity
             startActivity(new Intent(this, RegisterActivity.class));
@@ -122,47 +127,40 @@ public class MainActivity extends AppCompatActivity {
     public void update(){
         final String myEmail = MemoryManager.getInstance().getMyEmail(this);
         final Context context = this;
-        CRH.startTracking(myEmail, new Callback() {
+
+        Thread thread = new Thread(new Runnable() {
             @Override
-            public void execute(Response response) {
-                Email[] emails = CRH.getEmails(myEmail, new Callback() {
+            public void run() {
+                String response = EmailProxy.getInstance().getEmails(myEmail, null);
+                //System.out.println(response);
 
+                String pattern = "[^\"$]+\\$[^\"$]+\\$[^\"$]+";
+
+                Pattern r = Pattern.compile(pattern);
+                Matcher m = r.matcher(response);
+                while (m.find()) {
+                    String match = m.group(0);
+                    InboxEmail email = new InboxEmail(new Email(match));
+                    inbox.add(new InboxEmail(email));
+                    MemoryManager.getInstance().SaveInboxEmail(context, email);
+                }
+
+                runOnUiThread(new Runnable() {
                     @Override
-                    public void execute(Response response) {
-                        ToastManager.show("Emails received!", 0, (Activity) context);
-
+                    public void run() {
+                        Collections.sort(inbox, new EmailComparator());
+                        adapter.notifyDataSetChanged();
                     }
                 });
-                for(int i = 0; i < emails.length; i++){
-                    System.out.println(emails[i]);
-                    InboxEmail iemail = new InboxEmail(emails[i]);
-                    inbox.add(new InboxEmail(iemail));
-                    MemoryManager.getInstance().SaveInboxEmail(context, iemail);
-                }
-
-                try {
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Collections.sort(inbox, new EmailComparator());
-                            adapter.notifyDataSetChanged();
-                        }
-                    });
-
-                    CRH.clearInbox(myEmail, new Callback() {
-                        @Override
-                        public void execute(Response response) {
-                            update();
-                        }
-                    });
-                } catch (Exception e) {
-                    System.out.println(e.getLocalizedMessage());
-                    e.printStackTrace();
-                }
-
 
             }
         });
+        thread.start();
+
+    }
+
+    public void SetInternet(){
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        Internet.ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
     }
 }

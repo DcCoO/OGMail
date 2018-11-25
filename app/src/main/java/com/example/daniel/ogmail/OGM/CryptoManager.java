@@ -51,10 +51,10 @@ public class CryptoManager {
         return message;
     }
 
-    public static String encryptEmail(Email email, int destinyIndex){
+    public static String encryptEmail(Email email){
         //subject, body
-        String cipher = encrypt(email.subject, email.from, email.to[destinyIndex]) + "$" +
-                        encrypt(email.body, email.from, email.to[destinyIndex]);
+        String cipher = encrypt(email.subject, email.from, email.to) + "$" +
+                        encrypt(email.body, email.from, email.to);
         return cipher;
     }
 
@@ -63,7 +63,7 @@ public class CryptoManager {
         int firstIndex = cipher.indexOf("$");
         subject = decrypt(cipher.substring(0, firstIndex), senderEmail, receiverEmail);
         body = decrypt(cipher.substring(firstIndex + 1, cipher.length()), senderEmail, receiverEmail);
-        return new Email(new Date(), senderEmail, new String[]{receiverEmail}, subject, body);
+        return new Email(new Date(), senderEmail, receiverEmail, subject, body);
     }
 
 }

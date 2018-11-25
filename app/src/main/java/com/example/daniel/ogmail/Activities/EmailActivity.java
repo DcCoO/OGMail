@@ -4,8 +4,10 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,9 +16,11 @@ import android.widget.EditText;
 
 import com.example.daniel.ogmail.Callback;
 import com.example.daniel.ogmail.OGM.Email;
+import com.example.daniel.ogmail.OGM.EmailProxy;
 import com.example.daniel.ogmail.OGM.OGM;
 import com.example.daniel.ogmail.OGM.Response;
 import com.example.daniel.ogmail.R;
+import com.example.daniel.ogmail.application.Internet;
 import com.example.daniel.ogmail.application.MemoryManager;
 import com.example.daniel.ogmail.application.ToastManager;
 
@@ -29,7 +33,7 @@ public class EmailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_email);
         setTitle("New Email");
-
+        SetInternet();
         Button button = findViewById(R.id.send);
         final Context context = this;
 
@@ -43,17 +47,34 @@ public class EmailActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-                String dest = destiny.getText().toString();
-                int begin = 0, end;
-                String[] to = new String[dest.length() - dest.replace(",", "").length() + 1];
-                for(int i = 0; i < to.length; i++){
-                    end = dest.indexOf(',', begin + 1);
-                    if(end == -1) end = dest.length();
-                    to[i] = dest.substring(begin, end);
-                    begin = end + 1;
-                }
 
-                Email e = new Email(new Date(), from, to, subject.getText().toString(), body.getText().toString());
+                final Email e = new Email(new Date(), from, destiny.getText().toString(), subject.getText().toString(), body.getText().toString());
+
+                System.out.println("CLICOU EM ENVIAR");
+
+                Thread thread = new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try  {
+                            String response = EmailProxy.getInstance().sendEmail(e, null);
+                            if(response.equals("success")){
+                                ToastManager.show("Email successfully sent.", 0, (Activity) context);
+                            }
+                            else {
+                                ToastManager.show("Failed to send email.", 0, (Activity) context);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                thread.start();
+
+
+
+                /*
                 OGM.getInstance().sendEmail(e, new Callback() {
                     @Override
                     public void execute(Response response) {
@@ -67,7 +88,7 @@ public class EmailActivity extends AppCompatActivity {
                             ToastManager.show("Not all users received the email.", 0, (Activity) context);
                         }
                     }
-                });
+                });*/
             }
         });
 
@@ -97,5 +118,11 @@ public class EmailActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+
+    public void SetInternet(){
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        Internet.ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
     }
 }

@@ -11,8 +11,8 @@ import java.util.Arrays;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class OGM implements EmailService {
-
+public class OGM {
+    /*
     private static OGM instance = null;
 
     private static volatile boolean tracking = false;
@@ -65,30 +65,22 @@ public class OGM implements EmailService {
     @Override
     public void sendEmail(final Email email, final Callback callback) {
 
-        for(int i = 0; i < email.to.length; i++){
-            System.out.println("dest: " + email.to[i]);
-        }
+
 
         Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                boolean hasOneUser = false;
-                boolean hasntOneUser = false;
                 try  {
-                    for(int i = 0; i < email.to.length; i++){
-                        boolean userExists = searchUser(email.to[i], null);
-                        hasOneUser = hasOneUser || userExists;
-                        hasntOneUser = hasntOneUser || !userExists;
+                    boolean userExists = searchUser(email.to, null);
 
-                        if(!userExists) continue;
+                    if(userExists) {
 
-                        String cipher = CryptoManager.encryptEmail(email, i);
-                        writeEmail(email.from, email.to[i], cipher);
+                        String cipher = CryptoManager.encryptEmail(email);
+                        writeEmail(email.from, email.to, cipher);
+                        callback.execute(Response.EMAIL_SENT);
                     }
-                    if(!hasntOneUser) callback.execute(Response.EMAIL_SENT);
-                    else if(!hasOneUser) callback.execute(Response.EMAIL_FAILED);
-                    else callback.execute(Response.EMAIL_PARTIALLY_SENT);
+                    else callback.execute(Response.EMAIL_FAILED);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -371,5 +363,5 @@ public class OGM implements EmailService {
 
         //print result
         System.out.println(response.toString());
-    }
+    }*/
 }
