@@ -47,7 +47,7 @@ public class EmailActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-
+                System.out.println("Enviando email de " + from + " para " + destiny.getText().toString());
                 final Email e = new Email(new Date(), from, destiny.getText().toString(), subject.getText().toString(), body.getText().toString());
 
                 System.out.println("CLICOU EM ENVIAR");

@@ -20,6 +20,7 @@ public class Requestor {
             msgToBeUnmarshalled = crh.receive();
             responseMsg = marshaller.unmarshallAnswer(msgToBeUnmarshalled);
 
+            System.out.println("CHEGOU DO SERVER: " + responseMsg);
             term.setResult(responseMsg);
             return term;
         }

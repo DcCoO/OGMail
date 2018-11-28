@@ -133,27 +133,42 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     String response = EmailProxy.getInstance().getEmails(myEmail, null);
-                    //System.out.println(response);
 
-                    String pattern = "[^\"$]+\\$[^\"$]+\\$[^\"$]+";
-
-                    Pattern r = Pattern.compile(pattern);
-                    Matcher m = r.matcher(response);
-
-                    boolean foundEmails = false;
-
-                    while (m.find()) {
-                        foundEmails = true;
-                        String match = m.group(0);
-                        InboxEmail email = new InboxEmail(new Email(match));
-                        inbox.add(new InboxEmail(email));
-                        MemoryManager.getInstance().SaveInboxEmail(context, email);
-                    }
-
-                    if(!foundEmails) {
+                    if(response.equals("")){
                         ToastManager.show("No new emails.", 0, (Activity) context);
                         return;
                     }
+
+                    int start = 0, end = 0;
+                    while(start < response.length()){
+                        end = response.indexOf('-', end + 1);
+                        InboxEmail email = new InboxEmail(new Email(response.substring(start, end)));
+                        inbox.add(new InboxEmail(email));
+                        MemoryManager.getInstance().SaveInboxEmail(context, email);
+                        start = end + 1;
+                    }
+
+                    //System.out.println(response);
+
+//                    String pattern = "[^\"$]+\\$[^\"$]+\\$[^\"$]+";
+//
+//                    Pattern r = Pattern.compile(pattern);
+//                    Matcher m = r.matcher(response);
+//
+//                    boolean foundEmails = false;
+//
+//                    while (m.find()) {
+//                        foundEmails = true;
+//                        String match = m.group(0);
+//                        InboxEmail email = new InboxEmail(new Email(match));
+//                        inbox.add(new InboxEmail(email));
+//                        MemoryManager.getInstance().SaveInboxEmail(context, email);
+//                    }
+//
+//                    if(!foundEmails) {
+//                        ToastManager.show("No new emails.", 0, (Activity) context);
+//                        return;
+//                    }
 
                     ToastManager.show("New emails received.", 0, (Activity) context);
 

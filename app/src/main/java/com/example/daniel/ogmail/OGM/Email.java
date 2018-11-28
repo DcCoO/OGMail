@@ -25,10 +25,11 @@ public class Email implements Serializable {
     public Email(String email){
         int first = email.indexOf('$');
         int second = email.indexOf('$', first + 1);
-        this.to = MainActivity.myEmail;
-        this.from = email.substring(0, first);
-        this.subject = email.substring(first + 1, second);
-        this.body = email.substring(second + 1, email.length());
+        int third = email.indexOf('$', second + 1);
+        this.to = email.substring(0, first);
+        this.from = email.substring(first + 1, second);
+        this.subject = email.substring(second + 1, third);
+        this.body = email.substring(third + 1, email.length());
         this.date = new Date();
     }
 
